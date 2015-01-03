@@ -30,18 +30,12 @@ sub TwoStepAuth_init {
       my $conf = { 'enabled' => 0, 'salt' => Cpanel::Rand::getranddata(32) };
       Cpanel::TwoStepAuth::Utils::flushConfig($conf, $settings_file);
       chmod 0600, $settings_file;
-      my ($login,$pass,$uid,$gid) = getpwnam($Cpanel::user)
-	or die "$Cpanel::user not in passwd file";
-      chown $uid, $gid, $settings_file;
   }
 
   if(!-e $backup_codes) {
       my $conf = { '1' => Cpanel::Rand::getranddata($bu_length), '2' => Cpanel::Rand::getranddata($bu_length), '3' => Cpanel::Rand::getranddata($bu_length) };
       Cpanel::TwoStepAuth::Utils::flushConfig($conf, $backup_codes);
       chmod 0600, $backup_codes;
-      my ($login,$pass,$uid,$gid) = getpwnam($Cpanel::user)
-        or die "$Cpanel::user not in passwd file";
-      chown $uid, $gid, $backup_codes;
   }
   return 1;
 }
@@ -85,6 +79,11 @@ sub TwoStepAuth_resetbackupcodes {
 }
 
 sub TwoStepAuth_show_form {
+  if (!$cp_config->{'policy'}) {
+    print  $locale->maketext('TwoStepAuth_is_not_active');
+    return;
+  }
+
   my $locale = Cpanel::Locale->get_handle();
   my ($active, $switch_form, $reset_form);
 
@@ -98,17 +97,6 @@ sub TwoStepAuth_show_form {
     $reset_form = "<input type='submit' name='resetsalt' value='".$locale->maketext('TwoStepAuth_reset_salt')."'>";
   }
   my $extra = "";
-
-  if (-e $CP_CONF_FILE) {
-    my $config = Cpanel::TwoStepAuth::Utils::load_Config($CP_CONF_FILE);
-
-    if (!$config->{'policy'}) {
-	print  $locale->maketext('TwoStepAuth_is_not_active');
-      return;
-    }
-  } else {
-    return;
-  }
 
   my $form =<<EOF;
 <form method="POST">
@@ -125,9 +113,9 @@ sub TwoStepAuth_active {
   return _active();
 }
 sub TwoStepAuth_show_backupcodes {
-if(_active() eq 0) {
-  return;
-}
+  if (!$cp_config->{'policy'}) {
+    return;
+  }
 my $backups = $users_dir . 'backups';
 my $conf = Cpanel::TwoStepAuth::Utils::load_Config($backups);
 my $keys = '';
@@ -175,9 +163,6 @@ sub TwoStepAuth_qr_text {
 }
 
 sub TwoStepAuth_registration_qr {
-if(_active() eq 0) {
-  return;
-}
       my $config = Cpanel::TwoStepAuth::Utils::load_Config($users_dir . 'conf');
       my $hash = md5_hex($config->{'salt'} . $Cpanel::user);
       my $hostname = Cpanel::Hostname::gethostname();
