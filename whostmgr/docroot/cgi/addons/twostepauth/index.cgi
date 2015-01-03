@@ -16,6 +16,7 @@ use Cpanel::Config          ();
 use Cpanel::Version         ();
 use Whostmgr::ACLS			();
 use Cpanel::TwoStepAuth::Utils();
+
 Whostmgr::ACLS::init_acls();
 
 my $CP_CONF_FILE = '/usr/local/cpanel/base/3rdparty/twostepauth/twostepauth.conf';
@@ -74,6 +75,10 @@ if ($FORM{action} eq "upgrade") {
 	print "<p align='center'><form action='$script' method='post'><input type='submit' class='input' value='Return'></form></p>\n";
 }
 elsif ($FORM{action} eq "users") {
+	&manage_users;
+}
+elsif ($FORM{action} eq "user_switch") {
+	&user_switch;
 }
 elsif ($FORM{action} eq "config") {
 	&tsaconfig;
@@ -81,7 +86,7 @@ elsif ($FORM{action} eq "config") {
 else {
 	&index_page;
 }
-  print "<p>&copy;2014 <a href='http://www.zen.co.uk/' target='_blank'>Zen Internet Ltd</a></p>\n";
+  print "<p>&copy;2015 <a href='https://github.com/steadramon/cpanel_addon-twostepauth/' target='_blank'>steadramon</a></p>\n";
   print "<pre style='font-family: Courier New, Courier; font-size: 12px'>twostepauth v$myv</pre>";
 # end main
 
@@ -113,7 +118,7 @@ my $HTML=<<HTML;
 	<tbody>
 		<tr><th align="left" colspan="2">cPanel Two Step Auth Control <!--(<u><a href="index.cgi?action=help">Help</a></u>)--></th></tr>
 		<tr class="tdshade1"><td><form method="post" action="index.cgi"><input type="hidden" value="config" name="action"><input type="submit" value="Config" class="input"></form></td><td width="100%">You can enable and configure Two Step Auth</td></tr>
-		<!--<tr class="tdshade2"><td><form method="post" action="index.cgi"><input type="hidden" value="users" name="action"><input type="submit" value="User Setup" class="input"></form></td><td width="100%">You can enable/disable for users</td></tr>-->
+		<tr class="tdshade2"><td><form method="post" action="index.cgi"><input type="hidden" value="users" name="action"><input type="submit" value="User Setup" class="input"></form></td><td width="100%">You can enable/disable for users</td></tr>
 	</tbody>
 </table>
 <br><table width="95%" align="center" class="sortable">
@@ -128,6 +133,66 @@ HTML
 
 }
 
+sub manage_users {
+        my @users;
+        opendir (DIR, "/var/cpanel/users") or die $!;
+        while (my $user = readdir (DIR)) {
+                if ($user =~ /^\./) {next}
+                my (undef,undef,undef,undef,undef,undef,undef,$homedir,undef,undef) = getpwnam($user);
+                $homedir =~ /(.*)/;
+                $homedir = $1;
+                if ($homedir eq "") {next}
+                if (not -d "$homedir") {next}
+                push (@users, $user);
+        }
+	closedir (DIR);
+        @users = sort @users; 
+        foreach my $user (@users) {
+            my $active = active($user);
+	    $info .= "<tr><td>$user</td><td>".( $active ? 'Active':'Inactive' )."</td><td><form method='POST'><input value='$user' type='hidden' name='userid'><input type='hidden' value='user_switch' name='action'><input type='submit' value='".( $active ? 'Deactivate':'Activate' )."'></form></td></tr>";
+        }
+my $HTML=<<HTML;
+<table width="95%" align="center" class="sortable">
+<tr>
+<th>User</th>
+<th>State</th>
+<th>Action</th>
+</tr>
+$info
+</table>
+HTML
+
+print $HTML;
+  print "<p align='center'><form action='$script' method='post'><input type='submit' class='input' value='Return'></form></p>\n";
+}
+
+sub user_switch {
+	my $user = $FORM{userid};
+	my $active = active($user);
+	if ($active) {
+		active($user, 0);
+	} else {
+		active($user, 1);
+	}
+	&manage_users;	
+}
+
+sub active {
+	my ($user, $value) = @_;
+
+	($login,$pass,$uid,$gid) = getpwnam($user);
+	my $homedir = ( Cpanel::PwCache::getpwuid($uid) )[7];
+	$settings_file = $homedir.'/.twostepauth/conf';
+	if (-e $settings_file ) {
+		my $conf = Cpanel::TwoStepAuth::Utils::load_Config($settings_file);
+		if (defined $value) {
+			$conf->{'enabled'} = $value;
+			Cpanel::TwoStepAuth::Utils::flushConfig($conf, $settings_file);
+		}
+		return $conf->{'enabled'};
+  	}
+  	return 0;
+}
 sub tsaconfig {
   my $enabled;
   my $disabled;
@@ -206,14 +271,6 @@ sub splitlines {
 
 ###############################################################################
 # start urlget (v1.3)
-#
-# Examples:
-#my ($status, $text) = &urlget("http://prdownloads.sourceforge.net/clamav/clamav-0.92.tar.gz","/tmp/clam.tgz");
-#if ($status) {print "Oops: $text\n"}
-#
-#my ($status, $text) = &urlget("http://www.configserver.com/free/msfeversion.txt");
-#if ($status) {print "Oops: $text\n"} else {print "Version: $text\n"}
-#
 sub urlget {
 	my $url = shift;
 	my $file = shift;

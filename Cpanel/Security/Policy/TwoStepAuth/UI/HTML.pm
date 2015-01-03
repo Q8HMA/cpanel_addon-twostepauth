@@ -33,6 +33,7 @@ sub process {
     my $cookie_ref = $sec_ctxt->{'cookies'};
 
     my $user;
+
     if ( $sec_ctxt->{'is_possessed'} ) {
         $user = $sec_ctxt->{'possessor'};
     }
@@ -43,10 +44,10 @@ sub process {
     $user =~ /(.*)/;    # TODO: brute-force untaint
     $user = $1;
 
-    ($login,$pass,$uid,$gid) = getpwnam($user);
+    my ($login,$pass,$uid,$gid) = getpwnam($user);
 
     my $homedir = ( Cpanel::PwCache::getpwuid($uid) )[7];
-    $settings_file = $homedir.'/.twostepauth/conf';
+    my $settings_file = $homedir.'/.twostepauth/conf';
 
     my $user_conf = Cpanel::TwoStepAuth::Utils::load_Config($settings_file);
 
@@ -62,6 +63,8 @@ sub process {
       return;
     }
 
+    my $bu_length = $cp_config->{'bu_length'} ? $cp_config->{'bu_length'}:16;
+
     $locale ||= Cpanel::Locale->get_handle();
     my $error = "";
 
@@ -69,10 +72,25 @@ sub process {
       my ($cp_verify)   = $formref->{'cp_verify'} ? $formref->{'cp_verify'} : "";
        
       if ($user_conf->{'salt'}) {
-        my $hash = md5_hex($user_conf->{'salt'} . $user);
+	my $out;
+	if (length($cp_verify) eq 6) {
+	        my $hash = md5_hex($user_conf->{'salt'} . $user);
+	        my @cmd = ("/usr/local/cpanel/base/3rdparty/twostepauth/gauth.php", "-c=verify", "-p=$hash", "-v=$cp_verify");
+	        $out = system(@cmd);
+	} else {
+		my $backups = $homedir.'/.twostepauth/backups';
+		if (-e $backups ) {
+			my $backup_codes = Cpanel::TwoStepAuth::Utils::load_Config($backups);
+			foreach my $sym (sort keys %$backup_codes) {
+				if ($cp_verify eq $backup_codes->{$sym}) {
+					$out = 0;
+					my $conf = { '1' => Cpanel::Rand::getranddata($bu_length), '2' => Cpanel::Rand::getranddata($bu_length), '3' => Cpanel::Rand::getranddata($bu_length) };
+					Cpanel::TwoStepAuth::Utils::flushConfig($conf, $backups);
+				}
+			}
+		}
+	}
 
-        my @cmd = ("/usr/local/cpanel/base/3rdparty/twostepauth/gauth.php", "-c=verify", "-p=$hash", "-v=$cp_verify");
-        my $out = system(@cmd);
         if($out =~ /^0$/i) {
 
 	  my $cpsession = md5_hex($ENV{'cp_security_token'});

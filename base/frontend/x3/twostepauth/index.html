@@ -1,5 +1,11 @@
 <cpanel setvar="dprefix=../">
 <cpanel Branding="include(stdheader.html)">
+<cpanelif $FORM{'resetbackupcodes'}>
+  <cpanel TwoStepAuth="resetbackupcodes()">
+</cpanelif>
+<cpanelif $FORM{'resetsalt'}>
+  <cpanel TwoStepAuth="resetsalt()">
+</cpanelif>
 <cpanelif $FORM{'switch'}>
   <cpanel TwoStepAuth="switch()">
 </cpanelif>
@@ -24,6 +30,7 @@ var qrcode = new QRCode("qrcode");
 qrcode.makeCode('<cpanel TwoStepAuth="qr_text()">');
 </script>
 </center>
+  <cpanel TwoStepAuth="show_backupcodes()">
   <cpanel TwoStepAuth="show_help()">
 </div>
 <cpanel Branding="include(stdfooter.html)">

@@ -53,7 +53,6 @@ sub fails {
   $settings_file = $homedir.'/.twostepauth/conf';
 
   my $user_conf = Cpanel::TwoStepAuth::Utils::load_Config($settings_file);
-  my $cp_config = Cpanel::TwoStepAuth::Utils::load_Config($CP_CONF_FILE);
 
   my $cpsession = md5_hex($ENV{'cp_security_token'});
 
@@ -66,6 +65,12 @@ sub fails {
   }
 
   return 0;
+}
+
+sub description {
+    $locale ||= Cpanel::Locale->get_handle();
+
+    return $locale->maketext('TwoStepAuth_legend');
 }
 
 1;
