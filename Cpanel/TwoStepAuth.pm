@@ -125,6 +125,9 @@ sub TwoStepAuth_active {
   return _active();
 }
 sub TwoStepAuth_show_backupcodes {
+if(_active() eq 0) {
+  return;
+}
 my $backups = $users_dir . 'backups';
 my $conf = Cpanel::TwoStepAuth::Utils::load_Config($backups);
 my $keys = '';
@@ -172,7 +175,9 @@ sub TwoStepAuth_qr_text {
 }
 
 sub TwoStepAuth_registration_qr {
-
+if(_active() eq 0) {
+  return;
+}
       my $config = Cpanel::TwoStepAuth::Utils::load_Config($users_dir . 'conf');
       my $hash = md5_hex($config->{'salt'} . $Cpanel::user);
       my $hostname = Cpanel::Hostname::gethostname();
