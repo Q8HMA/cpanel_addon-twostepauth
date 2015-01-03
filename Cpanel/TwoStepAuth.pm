@@ -79,12 +79,12 @@ sub TwoStepAuth_resetbackupcodes {
 }
 
 sub TwoStepAuth_show_form {
+  my $locale = Cpanel::Locale->get_handle();
   if (!$cp_config->{'policy'}) {
     print  $locale->maketext('TwoStepAuth_is_not_active');
     return;
   }
 
-  my $locale = Cpanel::Locale->get_handle();
   my ($active, $switch_form, $reset_form);
 
   if(_active()) {
