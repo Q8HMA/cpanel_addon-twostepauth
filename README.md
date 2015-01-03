@@ -5,6 +5,11 @@ Allows two step authentication via Integrate Google Authenticator (TOTP) for cPa
 
 Install:
 
+Ensure YAML::Syck available
+
+ * perl -MCPAN -e shell
+ * cpan> install YAML::Syck
+
 * cd /tmp/
 * git clone https://git hub.com/steadramon/cpanel_addon-twostepauth.git
 * cd cpanel_addon-twostepauth
