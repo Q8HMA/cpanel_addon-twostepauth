@@ -1,5 +1,6 @@
 <cpanel setvar="dprefix=../">
 <cpanel Branding="include(stdheader.html)">
+<cpanelfeature twostepauth>
 <cpanelif $FORM{'resetbackupcodes'}>
   <cpanel TwoStepAuth="resetbackupcodes()">
 </cpanelif>
@@ -33,4 +34,5 @@ qrcode.makeCode('<cpanel TwoStepAuth="qr_text()">');
   <cpanel TwoStepAuth="show_backupcodes()">
   <cpanel TwoStepAuth="show_help()">
 </div>
+</cpanelfeature>
 <cpanel Branding="include(stdfooter.html)">
