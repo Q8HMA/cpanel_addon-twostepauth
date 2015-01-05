@@ -149,7 +149,13 @@ sub manage_users {
         @users = sort @users; 
         foreach my $user (@users) {
             my $active = active($user);
-	    $info .= "<tr><td>$user</td><td>".( $active ? 'Active':'Inactive' )."</td><td><form method='POST'><input value='$user' type='hidden' name='userid'><input type='hidden' value='user_switch' name='action'><input type='submit' value='".( $active ? 'Deactivate':'Activate' )."'></form></td></tr>";
+	    $info .= "<tr><td>$user</td><td>".( $active ? 'Active':'Inactive' )."</td><td>";
+	    if ($active) {
+		$info .= "<form method='POST'><input value='$user' type='hidden' name='userid'><input type='hidden' value='user_switch' name='action'><input type='submit' value='".( $active ? 'Deactivate':'Activate' )."'></form>";
+	    } else {
+		$info .= "No actions";
+            }
+	    $info .= "</td></tr>";
         }
 my $HTML=<<HTML;
 <table width="95%" align="center" class="sortable">
