@@ -166,7 +166,7 @@ sub TwoStepAuth_qr_text {
       my $config = Cpanel::TwoStepAuth::Utils::load_Config($users_dir . 'conf');
       my $hash = md5_hex($config->{'salt'} . $Cpanel::user);
       my $hostname = Cpanel::Hostname::gethostname();
-      my $cmd = "/usr/local/cpanel/base/3rdparty/twostepauth/gauth.php -c=qr_text -t='cPanel $Cpanel::user $hostname' -p=$hash";
+      my $cmd = "/usr/local/cpanel/base/3rdparty/twostepauth/gauth.php -c=qr_text -t='cPanel $Cpanel::user' -i='$hostname' -p=$hash";
       my $out = `$cmd`;
       print $out;
       return;
@@ -177,7 +177,7 @@ sub TwoStepAuth_registration_qr {
       my $config = Cpanel::TwoStepAuth::Utils::load_Config($users_dir . 'conf');
       my $hash = md5_hex($config->{'salt'} . $Cpanel::user);
       my $hostname = Cpanel::Hostname::gethostname();
-      my $cmd = "/usr/local/cpanel/base/3rdparty/twostepauth/gauth.php -c=qr -t='cPanel $Cpanel::user $hostname' -p=$hash";
+      my $cmd = "/usr/local/cpanel/base/3rdparty/twostepauth/gauth.php -c=qr -t='cPanel $Cpanel::user' -i='$hostname' -p=$hash";
       my $out = `$cmd`;
       print "<img src='$out'>";
       return;

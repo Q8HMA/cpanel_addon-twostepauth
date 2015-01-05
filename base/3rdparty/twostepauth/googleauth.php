@@ -4,6 +4,7 @@
  * PHP Class for handling Google Authenticator 2-factor authentication
  *
  * @author Michael Kliewe
+ * @contribution Paul Stead
  * @copyright 2012 Michael Kliewe
  * @license http://www.opensource.org/licenses/bsd-license.php BSD License
  * @link http://www.phpgangsta.de/
@@ -81,8 +82,12 @@ class PHPGangsta_GoogleAuthenticator
         return 'https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl='.$urlencoded.'';
     }
 
-    public function getURI($name, $secret) {
-	return 'otpauth://totp/'.$name.'?secret='.$secret;
+    public function getURI($name, $secret, $issuer = NULL) {
+        if ($issuer) {
+                return 'otpauth://totp/'.$name.'?secret='.$secret.'&issuer='.$issuer;
+        } else {
+                return 'otpauth://totp/'.$name.'?secret='.$secret;
+        }
     }
 
     /**

@@ -8,11 +8,13 @@ $shortopts .= "c:";
 $shortopts .= "p:";  // Required value
 $shortopts .= "v::";
 $shortopts .= "t::"; // Optional value
+$shortopts .= "i::";
 
 $longopts  = array(
     "command:",     // Required value
     "privatekey:",     // Required value
     "title::",    // Optional value
+    "issuer::",    // Optional value
 );
 $options = getopt($shortopts, $longopts);
 $ga = new PHPGangsta_GoogleAuthenticator();
@@ -31,6 +33,10 @@ switch ($options['c']) {
 		}
 		break;
 	case "qr_text":
-		echo $ga->getURI($options['t'], $options['p']);
+		if (array_key_exists('i', $options)) {
+			echo $ga->getURI($options['t'], $options['p'], $options['i']);
+		} else {
+			echo $ga->getURI($options['t'], $options['p']);
+		}
 		break;
 }
