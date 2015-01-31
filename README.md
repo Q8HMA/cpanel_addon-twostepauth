@@ -16,3 +16,5 @@ Ensure YAML::Syck available
 * ./install
 * Enable Security Policy in WHM » Home » Security Center » Configure Security Policies
 * Enable plugin at WHM » Home » Plugins » cPanel Two Step Auth
+
+![cPanel Google Authenticator Two Factor Authentication](http://i.imgur.com/ps0enzY.png)
