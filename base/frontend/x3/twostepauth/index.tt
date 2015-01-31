@@ -1,0 +1,138 @@
+[%
+USE JSON;
+SET CPANEL.CPVAR.dprefix = "../";
+SET CPANEL.CPVAR.headerimg = '../images/toperrorpages.gif';
+
+IF FORM.reset_salt;
+    Api1.exec("TwoStepAuth", "resetsalt", [undef]);
+END;
+IF FORM.reset_backupcodes;
+    Api1.exec("TwoStepAuth", "resetbackupcodes", [undef]);
+END;
+IF FORM.user_switch;
+    Api1.exec("TwoStepAuth", "switch", [undef]);
+END;
+%]
+
+[% execute("Branding", "include", { file='stdheader.html' }).data %]
+
+<script src="/frontend/x3/twostepauth/qrcode.min.js" ></script>
+
+[% SET system_enabled = Api1.exec("TwoStepAuth", "system_enabled", [undef]); %]
+[% SET user_enabled = Api1.exec("TwoStepAuth", "user_enabled", [undef]); %]
+<style>
+.code-strikthru { text-decoration: line-through;  }
+.tsahighlight{background:#f9f9f9;border:1px Solid #eee;padding:10px;margin:10px 0}.tsahighlight h2{margin:0}
+
+.f-left {
+  float: left;
+  width: 50%;
+}
+.f-right {
+  float: right;
+  width: 50%;
+}
+.alert-success {
+    background-color: #dff2d5;
+    border: 1px solid #27ae60;
+    color: #3c763d;
+}
+.alert-warning {
+    background-color: #fcf8e1;
+    border: 1px solid #f1c40f;
+    color: #8a6d3b;
+}
+.form-control {
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
+    display: block;
+    font-size: 14px;
+    height: 25px;
+    line-height: 1.42857;
+    padding: 6px 12px;
+    width: 90%;
+}
+</style>
+
+[% PROCESS branding_spritelist.tt img='twostepauth' %]
+
+<div class="body-content">
+    <div class="h1Title"><div class="spriteicon_img_mini" id="icon-twostepauth_mini"></div>[% locale.maketext('Two Step Auth') %]</div>
+    [% IF CPANEL.feature("twostepauth") %]
+	[% IF system_enabled == 1 %]
+	<div class="section">
+	        <p id="descAddon" class="description">
+	            [% locale.maketext("Two Step Auth adds an extra layer of security to your cPanel account.") %]<br/>
+	            [% locale.maketext("Scan the QR code with your mobile phone's TOTP (Timed-based One Time Password) application, Google Authenticator is recommended. If you reset the QR you will need to rescan it.") %]<br/>
+	            [% locale.maketext("The recovery codes are one-time-use passwords in case you lose your phone - keep these safe! When used they will be disabled, you can generate new codes at any time."); %]
+                </p>
+	    <h2>[% locale.maketext("State") %]</h2>
+            <form method="POST">
+            <input type="hidden" value="1" name="user_switch">
+            [% IF user_enabled == 1 %]
+                <p class="description">[% locale.maketext("Two Step Auth is currently enabled"); %]</p>
+                <button class='input-button' type="submit" class="btn btn-primary active">[% locale.maketext("Disable Two Step Auth"); %]</button>
+            [% ELSE %]
+                <p class="description">[% locale.maketext("Two Step Auth is currently disabled"); %]</p>
+                <button class='input-button' type="submit" class="btn btn-primary active">[% locale.maketext("Enable Two Step Auth"); %]</button>
+            [% END %]
+            </form>
+        </div>
+        <div class="tsahighlight">
+                <div class="f-left">
+	            <h2>[% locale.maketext("QR Code") %]</h2>
+                    <p class="description">[% locale.maketext("Scan the QR code below and use the code shown on your mobile phone screen to log in when prompted."); %]</p>
+		    <div id="qrcode"></div>
+                    [% IF user_enabled != 1 %]
+                            <form method="POST">
+                                <input type="hidden" value="1" name="reset_salt">
+                                <button class='input-button' type="submit" class="btn btn-primary active">[% locale.maketext("Reset QR"); %]</button>
+                            </form>
+                    [% END %]
+                </div>
+                <div class="f-right">
+                    <h2>[% locale.maketext("Recovery Codes") %]</h2>
+                    <p class="description">[% locale.maketext("Print off and keep the codes below safe, they will allow you to log into your account if you don't have access to your mobile phone."); %]</p>
+                    [% Api2.pre_exec("TwoStepAuth", "backupcodes");
+                    api2_result_twostepauth_backup_codes=Api2.exec("TwoStepAuth" , "backupcodes" , [undef]);
+                    Api2.post_exec("TwoStepAuth", "backupcodes");
+                    IF api2_result_twostepauth_backup_codes.size;
+                        FOREACH hashref IN api2_result_twostepauth_backup_codes;
+                        IF hashref.state == "0";
+                             SET key_class = 'alert-success';
+                        ELSE;
+                             SET key_class = 'alert-warning code-strikthru';
+                        END;
+                    %]
+                        <input type="text" class="form-control [% key_class %]" value="[% hashref.key %]"><br/>
+                    [%
+                        END;
+                    END
+                    %]
+                    <form method="POST">
+                        <input type="hidden" value="1" name="reset_backupcodes">
+                        <button class='input-button' type="submit" class="btn btn-primary active">[% locale.maketext("Reset Backup Codes"); %]</button>
+                    </form>
+                </div>
+            <br style="clear:both;"/>
+        </div>
+
+	[% ELSE %]
+
+        <div class="section">
+                <p id="descAddon" class="description">
+                    [% locale.maketext("Two Step Auth is not enabled on this server. Please contact your administrator."); %]
+                </p>
+        </div>
+
+	[% END %]
+     [% END #feature %]
+</div><!-- end body-content -->
+
+<script>
+[% SET qrtext = Api1.exec("TwoStepAuth", "qr_text", [undef]); %]
+   var qrcode = new QRCode("qrcode");
+   qrcode.makeCode('[% qrtext %]');
+</script>
+
+[% execute("Branding", "include", { file='stdfooter.html' }).data %]

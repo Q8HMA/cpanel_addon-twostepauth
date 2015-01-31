@@ -19,19 +19,19 @@ sub config {
     my ( $self, $formref, $cpconf_ref, $is_save ) = @_;
 
     if(lc($formref->{'cmd'}) eq 'save') {
-      my $CP_CONF_FILE = '/usr/local/cpanel/base/3rdparty/cryptophoto/cryptophoto.conf';
-      if(defined $formref->{'CryptoPhoto'}) {
+      my $CP_CONF_FILE = '/usr/local/cpanel/base/3rdparty/twostepauth/twostepauth.conf';
+      if(defined $formref->{'TwoStepAuth'}) {
         $cp_config->{'policy'} = 1;
       } else {
         $cp_config->{'policy'} = 0;
       }
 
-#      Cpanel::CryptoPhoto::Utils::flushConfig( $cp_config, $CP_CONF_FILE );
+      Cpanel::TwoStepAuth::Utils::flushConfig( $cp_config, $CP_CONF_FILE );
     }
 
     $locale ||= Cpanel::Locale->get_handle();
     return {
-	'header' => $locale->maketext('TwoStepAuth_legend')
+	'header' => $locale->maketext('Two Step Auth Security Policy')
     };
 
 

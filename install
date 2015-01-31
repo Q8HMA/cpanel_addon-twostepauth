@@ -16,14 +16,15 @@ system '/usr/bin/rsync', '-rlptD', 'Cpanel/', '/usr/local/cpanel/Cpanel/';
 system '/usr/bin/rsync', '-rlptD', 'base/', '/usr/local/cpanel/base/';
 system '/usr/bin/rsync', '-rlptD', 'whostmgr/', '/usr/local/cpanel/whostmgr/';
 system 'echo -n "policy=0" > /usr/local/cpanel/base/3rdparty/twostepauth/twostepauth.conf' if !-e "/usr/local/cpanel/base/3rdparty/twostepauth/twostepauth.conf";
-install( "-o", "root", "-g", "wheel", "-m" . "0600", "icon/ico-twostepauth.jpg", "/usr/local/cpanel/whostmgr/docroot/addon_plugins/ico-twostepauth.jpg" );
-
-print "Registering Locales\n";
-system '/usr/local/cpanel/base/3rdparty/twostepauth/setup_locale.pl >/dev/null 2>&1';
-system '/usr/local/cpanel/bin/build_locale_databases >/dev/null';
+install( "-o", "root", "-g", "wheel", "-m" . "0600", "icon/ico-twostepauth.png", "/usr/local/cpanel/whostmgr/docroot/addon_plugins/ico-twostepauth.png" );
 
 print "Registering Plugin\n";
-system '/usr/local/cpanel/bin/register_cpanelplugin /usr/local/cpanel/base/3rdparty/twostepauth/twostepauth.cpanelplugin';
+if ( $Cpanel::Version::MAJORVERSION < 11.44 ) {
+    system '/usr/local/cpanel/bin/register_cpanelplugin /usr/local/cpanel/base/3rdparty/twostepauth/twostepauth.cpanelplugin';
+} else {
+    system '/usr/local/cpanel/scripts/install_plugin /usr/local/cpanel/base/3rdparty/twostepauth/plugin_twostepauth.pl.tar.bz2 --theme paper_lantern';
+    system '/usr/local/cpanel/scripts/install_plugin /usr/local/cpanel/base/3rdparty/twostepauth/plugin_twostepauth.x3.tar.bz2 --theme x3';
+}
 
 print "Registering WHM Plugin\n";
 system '/usr/local/cpanel/bin/register_appconfig base/3rdparty/twostepauth/addon_twostepauth.conf';

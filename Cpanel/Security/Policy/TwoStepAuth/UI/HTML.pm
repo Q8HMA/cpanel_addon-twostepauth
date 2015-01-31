@@ -82,10 +82,10 @@ sub process {
 		if (-e $backups ) {
 			my $backup_codes = Cpanel::TwoStepAuth::Utils::load_Config($backups);
 			foreach my $sym (sort keys %$backup_codes) {
-				if ($cp_verify eq $backup_codes->{$sym}) {
+				if (($sym =~ /^\d+$/) && ($cp_verify eq $backup_codes->{$sym}) && !(exists $backup_codes->{$sym.'-used'})) {
 					$out = 0;
-					my $conf = { '1' => Cpanel::Rand::getranddata($bu_length), '2' => Cpanel::Rand::getranddata($bu_length), '3' => Cpanel::Rand::getranddata($bu_length) };
-					Cpanel::TwoStepAuth::Utils::flushConfig($conf, $backups);
+                                        $backup_codes->{$sym.'-used'} = 1;
+					Cpanel::TwoStepAuth::Utils::flushConfig($backup_codes, $backups);
 				}
 			}
 		}
@@ -104,7 +104,7 @@ sub process {
 
           return;
         } else {
-            $error = $locale->maketext('TwoStepAuth_auth_error');
+            $error = $locale->maketext('Error, please check your code.');
         }
       }
     } 

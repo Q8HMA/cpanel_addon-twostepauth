@@ -70,7 +70,7 @@ sub fails {
 sub description {
     $locale ||= Cpanel::Locale->get_handle();
 
-    return $locale->maketext('TwoStepAuth_legend');
+    return $locale->maketext('Two Step Auth Security Policy');
 }
 
 1;

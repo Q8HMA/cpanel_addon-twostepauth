@@ -1,6 +1,6 @@
 <div class="body-content">
 <center>
-  <h3>[% locale.maketext("TwoStepAuth_authentication") %]</h3>
+  <h3>[% locale.maketext("cPanel Two Step Auth") %]</h3>
   <div id="login-status" class="error-notice" style="display:none;width:300px!important;padding:5px 5px 8px 5px!important;margin:0 0 10px 0">
     <span class="login-status-icon"></span>
     <div id="login-status-message">[% cp_error %]</div>
@@ -14,7 +14,7 @@
   </script>
   <form method="POST" action="[% cp_security_token %]/">
 	<input type="text" name="cp_verify">
-    <input type='submit' name='cp_auth' value='[% locale.maketext("TwoStepAuth_authenticate") %]'>
+    <input type='submit' name='cp_auth' value='[% locale.maketext("Authenticate") %]'>
   </form>
 </center>
 </div>
