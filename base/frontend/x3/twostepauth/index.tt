@@ -91,13 +91,13 @@ END;
                   [% select_box = [ 'None','Recovery codes','All logins'] %]
                   [% SET notify_option = Api1.exec("TwoStepAuth", "notify", [undef]); %]
                   <div class="col-xs-6">
-                     <select class="form-control" name="notify_update">
+                     <select class="" name="notify_update">
                      [% FOREACH option IN select_box %]
                        <option value="[% loop.index %]" [%- "selected" IF loop.index==notify_option %]>[% option %]</option>
                      [% END %]
                     </select>
                   </div>
-                  <button type="submit" class="btn btn-primary active">[% locale.maketext("Update"); %]</button>
+                  <button type="submit" class="input-button">[% locale.maketext("Update"); %]</button>
                   </form>
                 </div>
             </div>
