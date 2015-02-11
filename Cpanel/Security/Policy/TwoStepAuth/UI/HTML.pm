@@ -64,12 +64,13 @@ sub process {
     }
 
     my $bu_length = $cp_config->{'bu_length'} ? $cp_config->{'bu_length'}:16;
+    my $cp_verify = '';
 
     $locale ||= Cpanel::Locale->get_handle();
     my $error = "";
 
     if ($formref->{'cp_auth'} eq 'Authenticate' || $formref->{'cp_verify'}) {
-      my ($cp_verify)   = $formref->{'cp_verify'} ? $formref->{'cp_verify'} : "";
+      ($cp_verify)   = $formref->{'cp_verify'} ? $formref->{'cp_verify'} : "";
        
       if ($user_conf->{'salt'}) {
 	my $out;
@@ -86,6 +87,7 @@ sub process {
 					$out = 0;
                                         $backup_codes->{$sym.'-used'} = 1;
 					Cpanel::TwoStepAuth::Utils::flushConfig($backup_codes, $backups);
+					last;
 				}
 			}
 		}
@@ -93,6 +95,41 @@ sub process {
 
         if($out =~ /^0$/i) {
 
+            if ($user_conf->{'notify'}) {
+                require Cpanel::iContact;
+                use Cpanel::Time;
+
+                my $host    = Cpanel::Hostname::gethostname();
+                my $subject = '[login] ' . $locale->maketext( "Login to account [_1] on [_2].", $user, $host );
+                my $msg     = '';
+
+                if (length($cp_verify) eq 6) {
+                    $msg = $locale->maketext('We are sending you this email further to your successful login to the control panel on [_1].', $host);
+                } else {
+                    $subject = '[login] ' . $locale->maketext( "Backup code login to account [_1] on [_2].", $user, $host );
+                    $msg = $locale->maketext('We are sending you this email due to a backup code being used to login to the control panel on [_1].', $host);
+                }
+
+                $msg .= "\n\n";
+
+                $msg .= $locale->maketext("Username: [_1]\n", $user);
+                $msg .= $locale->maketext("IP Address: [_1]\n", $ENV{'REMOTE_ADDR'});
+                $msg .= $locale->maketext("Browser: [_1]\n", $ENV{'HTTP_USER_AGENT'});
+                $msg .= $locale->maketext("Time: [_1]\n", Cpanel::Time::time2http());
+
+                $msg .= "\n\n";
+
+		if ((length($cp_verify) ne 6) || ($user_conf->{'notify'} eq 2)) {
+                    Cpanel::iContact::icontact(
+                        'user'	      => $user,
+                        'application' => 'Notice',
+                        'subject'     => $subject,
+                        'message'     => $msg,
+                        'msgtype'     => '',
+		        'to'	      => $user,
+                    );
+               }
+            }
 	  my $cpsession = md5_hex($ENV{'cp_security_token'});
 
           if ($cpsession) {

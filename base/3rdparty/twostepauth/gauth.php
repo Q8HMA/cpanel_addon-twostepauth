@@ -34,9 +34,9 @@ switch ($options['c']) {
 		break;
 	case "qr_text":
 		if (array_key_exists('i', $options)) {
-			echo $ga->getURI($options['t'], $options['p'], $options['i']);
+			echo $ga->getURI(rawurlencode($options['t']), $options['p'], $options['i']);
 		} else {
-			echo $ga->getURI($options['t'], $options['p']);
+			echo $ga->getURI(rawurlencode($options['t']), $options['p']);
 		}
 		break;
 }

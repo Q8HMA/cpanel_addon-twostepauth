@@ -6,6 +6,9 @@ SET CPANEL.CPVAR.headerimg = '../images/toperrorpages.gif';
 IF FORM.reset_salt;
     Api1.exec("TwoStepAuth", "resetsalt", [undef]);
 END;
+IF FORM.notify_update.size;
+    Api1.exec("TwoStepAuth", "change_notify", [FORM.notify_update]);
+END;
 IF FORM.reset_backupcodes;
     Api1.exec("TwoStepAuth", "resetbackupcodes", [undef]);
 END;
@@ -66,17 +69,39 @@ END;
 	            [% locale.maketext("Scan the QR code with your mobile phone's TOTP (Timed-based One Time Password) application, Google Authenticator is recommended. If you reset the QR you will need to rescan it.") %]<br/>
 	            [% locale.maketext("The recovery codes are one-time-use passwords in case you lose your phone - keep these safe! When used they will be disabled, you can generate new codes at any time."); %]
                 </p>
-	    <h2>[% locale.maketext("State") %]</h2>
-            <form method="POST">
-            <input type="hidden" value="1" name="user_switch">
-            [% IF user_enabled == 1 %]
-                <p class="description">[% locale.maketext("Two Step Auth is currently enabled"); %]</p>
-                <button class='input-button' type="submit" class="btn btn-primary active">[% locale.maketext("Disable Two Step Auth"); %]</button>
-            [% ELSE %]
-                <p class="description">[% locale.maketext("Two Step Auth is currently disabled"); %]</p>
-                <button class='input-button' type="submit" class="btn btn-primary active">[% locale.maketext("Enable Two Step Auth"); %]</button>
-            [% END %]
-            </form>
+        </div>
+        <div class="section">
+                <div class="f-left">
+	            <h2>[% locale.maketext("State") %]</h2>
+                    <form method="POST">
+                        <input type="hidden" value="1" name="user_switch">
+                    [% IF user_enabled == 1 %]
+                        <p class="description">[% locale.maketext("Two Step Auth is currently enabled"); %]</p>
+                        <button class='input-button' type="submit" class="btn btn-primary active">[% locale.maketext("Disable Two Step Auth"); %]</button>
+                    [% ELSE %]
+                        <p class="description">[% locale.maketext("Two Step Auth is currently disabled"); %]</p>
+                        <button class='input-button' type="submit" class="btn btn-primary active">[% locale.maketext("Enable Two Step Auth"); %]</button>
+                    [% END %]
+                    </form>
+                </div>
+                <div class="f-right">
+                  <h2>[% locale.maketext("Email Notification") %]</h2>
+                  <p class="description">[% locale.maketext("Change email options. Send login notifications to configured contact address."); %]</p>
+                  <form method="POST">
+                  [% select_box = [ 'None','Recovery codes','All logins'] %]
+                  [% SET notify_option = Api1.exec("TwoStepAuth", "notify", [undef]); %]
+                  <div class="col-xs-6">
+                     <select class="form-control" name="notify_update">
+                     [% FOREACH option IN select_box %]
+                       <option value="[% loop.index %]" [%- "selected" IF loop.index==notify_option %]>[% option %]</option>
+                     [% END %]
+                    </select>
+                  </div>
+                  <button type="submit" class="btn btn-primary active">[% locale.maketext("Update"); %]</button>
+                  </form>
+                </div>
+            </div>
+            <br style="clear:both;"/>
         </div>
         <div class="tsahighlight">
                 <div class="f-left">
@@ -104,7 +129,7 @@ END;
                              SET key_class = 'alert-warning code-strikthru';
                         END;
                     %]
-                        <input type="text" class="form-control [% key_class %]" value="[% hashref.key %]"><br/>
+                        <input type="text" class="form-control [% key_class %]" value="[% hashref.key %]" readonly><br/>
                     [%
                         END;
                     END

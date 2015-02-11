@@ -10,8 +10,6 @@ if ( $Cpanel::Version::MAJORVERSION < 11.40 ) {
 
 mkdir( "/var/cpanel/apps", 0755 );
 
-system "PERL_MM_USE_DEFAULT=1; perl -MCPAN -e 'YAML::Syck'";
-
 system '/usr/bin/rsync', '-rlptD', 'Cpanel/', '/usr/local/cpanel/Cpanel/';
 system '/usr/bin/rsync', '-rlptD', 'base/', '/usr/local/cpanel/base/';
 system '/usr/bin/rsync', '-rlptD', 'whostmgr/', '/usr/local/cpanel/whostmgr/';
@@ -36,4 +34,3 @@ exit(0);
 sub install {
     system( "/usr/bin/install", @_ );
 }
-

@@ -88,6 +88,27 @@ sub TwoStepAuth_user_enabled {
     }
 }
 
+sub TwoStepAuth_change_notify {
+  my ($value) = @_;
+
+  if ($value eq 1) {
+    _notify(1)
+  }
+  elsif ($value eq 2) {
+      _notify(2)
+  }
+  else {
+      _notify(0)
+  }
+
+  return;
+}
+
+sub TwoStepAuth_notify {
+  print _notify();
+  return;
+}
+
 sub TwoStepAuth_qr_text {
       return if !Cpanel::hasfeature('twostepauth');
 
@@ -116,7 +137,7 @@ sub api2_backupcodes {
 }
 
 sub _setup_settings_file {
-    my $conf = { 'enabled' => 0, 'salt' => Cpanel::Rand::getranddata(32) };
+    my $conf = { 'enabled' => 0, 'salt' => Cpanel::Rand::getranddata(32), 'notify' => 0 };
     Cpanel::TwoStepAuth::Utils::flushConfig($conf, $settings_file);
     chmod 0600, $settings_file;
 }
@@ -143,8 +164,25 @@ sub _active {
       $conf->{'enabled'} = $value;
       Cpanel::TwoStepAuth::Utils::flushConfig($conf, $settings_file);
     }
-    return $conf->{'enabled'};
+    return $conf->{'enabled'}?$conf->{'enabled'}:0;
   } 
+  return 0;
+}
+
+sub _notify {
+  my ($value) = @_;
+
+  my $settings_file = $users_dir . 'conf';
+
+  if (-e $settings_file ) {
+    my $conf = Cpanel::TwoStepAuth::Utils::load_Config($settings_file);
+
+    if (defined $value) {
+      $conf->{'notify'} = $value;
+      Cpanel::TwoStepAuth::Utils::flushConfig($conf, $settings_file);
+    }
+    return $conf->{'notify'}?$conf->{'notify'}:0;
+  }
   return 0;
 }
 
