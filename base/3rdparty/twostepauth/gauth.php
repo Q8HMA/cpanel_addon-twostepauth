@@ -19,6 +19,8 @@ $longopts  = array(
 $options = getopt($shortopts, $longopts);
 $ga = new PHPGangsta_GoogleAuthenticator();
 $options['p'] = $ga->setSecret($options['p']);
+$options['p'] = str_replace('=', '', $options['p']);
+
 switch ($options['c']) {
 	case "qr":
 		echo $ga->getQRCodeGoogleUrl($options['t'], $options['p']);
